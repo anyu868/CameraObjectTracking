@@ -4,13 +4,10 @@ import { useObjectTracking } from '../hooks/useObjectTracking'
 
 interface VideoCanvasProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
-  canvasRef?: React.RefObject<HTMLCanvasElement | null>
 }
 
-const VideoCanvas: React.FC<VideoCanvasProps> = ({ videoRef, canvasRef: externalCanvasRef }) => {
-  const internalCanvasRef = useRef<HTMLCanvasElement | null>(null)
-  const canvasRef = externalCanvasRef || internalCanvasRef
-  
+const VideoCanvas: React.FC<VideoCanvasProps> = ({ videoRef }) => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const {
     detectedObjects,
     trackedObject,
@@ -137,7 +134,7 @@ const VideoCanvas: React.FC<VideoCanvasProps> = ({ videoRef, canvasRef: external
       }
       drawFPS(ctx, fps)
     }
-  }, [videoRef, detectedObjects, trackedObject, selectedObject, isDetecting, fps, drawDetections, drawTrajectory, drawFPS, canvasRef])
+  }, [videoRef, detectedObjects, trackedObject, selectedObject, isDetecting, fps, drawDetections, drawTrajectory, drawFPS])
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDetecting || detectedObjects.length === 0) return
@@ -173,7 +170,7 @@ const VideoCanvas: React.FC<VideoCanvasProps> = ({ videoRef, canvasRef: external
         onClick={handleCanvasClick}
       />
       {isDetecting && trackedObject && (
-        <div className="absolute top-4 left-4 glass-effect rounded-lg p-3 max-w-xs hidden md:block">
+        <div className="absolute top-4 left-4 glass-effect rounded-lg p-3 max-w-xs">
           <div className="text-white text-sm">
             <div className="font-bold mb-2 flex items-center gap-2">
               <div

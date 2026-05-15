@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Camera, AlertCircle, MousePointer } from 'lucide-react'
 import { useCamera } from '../hooks/useCamera'
 import { useObjectDetection } from '../hooks/useObjectDetection'
@@ -8,13 +8,9 @@ import VideoPreview from '../components/VideoPreview'
 import VideoCanvas from '../components/VideoCanvas'
 import ControlPanel from '../components/ControlPanel'
 import StatusPanel from '../components/StatusPanel'
-import MediaControls from '../components/MediaControls'
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
-import { useScreenshot } from '../hooks/useScreenshot'
 
 const Home: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   
   const {
     stream,
@@ -30,12 +26,20 @@ const Home: React.FC = () => {
     setIsDetecting,
     setIsTracking,
     trackedObject,
-    error: appError,
-    resetTracking
+    error: appError
   } = useStore()
 
   const { startDetection, stopDetection } = useDetectionController({ videoRef })
-  const { takeScreenshot } = useScreenshot()
+
+  useEffect(() => {
+    loadModel()
+  }, [loadModel])
+
+  useEffect(() => {
+    if (trackedObject) {
+      setIsTracking(true)
+    }
+  }, [trackedObject, setIsTracking])
 
   const handleStartDetection = async () => {
     if (!stream) {
@@ -54,28 +58,6 @@ const Home: React.FC = () => {
   const handleSwitchCamera = () => {
     switchCamera()
   }
-
-  const handleResetTracking = useCallback(() => {
-    resetTracking()
-  }, [resetTracking])
-
-  useKeyboardShortcuts({
-    onStartDetection: handleStartDetection,
-    onStopDetection: handleStopDetection,
-    onScreenshot: () => takeScreenshot(canvasRef),
-    onResetTracking: handleResetTracking,
-    isDetecting
-  })
-
-  useEffect(() => {
-    loadModel()
-  }, [loadModel])
-
-  useEffect(() => {
-    if (trackedObject) {
-      setIsTracking(true)
-    }
-  }, [trackedObject, setIsTracking])
 
   return (
     <div className="min-h-screen gradient-bg p-4 md:p-8">
@@ -122,7 +104,7 @@ const Home: React.FC = () => {
                 )}
               </div>
 
-              <div className="relative aspect-video bg-black rounded-lg overflow-hidden touch-none">
+              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
                 {!stream && !cameraLoading && (
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
@@ -130,7 +112,7 @@ const Home: React.FC = () => {
                       <p className="text-gray-400 mb-4">摄像头未启动</p>
                       <button
                         onClick={() => requestCamera()}
-                        className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors touch-manipulation"
+                        className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors"
                       >
                         启动摄像头
                       </button>
@@ -150,7 +132,7 @@ const Home: React.FC = () => {
                 {stream && (
                   <>
                     <VideoPreview videoRef={videoRef} />
-                    <VideoCanvas videoRef={videoRef} canvasRef={canvasRef} />
+                    <VideoCanvas videoRef={videoRef} />
                   </>
                 )}
               </div>
@@ -186,12 +168,6 @@ const Home: React.FC = () => {
               isModelLoading={false}
             />
 
-            <MediaControls
-              stream={stream}
-              videoRef={videoRef}
-              canvasRef={canvasRef}
-            />
-
             <StatusPanel isCameraActive={!!stream} />
           </div>
         </div>
@@ -199,9 +175,6 @@ const Home: React.FC = () => {
         <footer className="text-center text-gray-400 text-sm">
           <p>基于 TensorFlow.js 和 Coco SSD 模型构建</p>
           <p className="mt-1">支持检测 80 种常见物体</p>
-          <p className="mt-2 text-xs opacity-70">
-            快捷键: 空格=开始/停止 | Ctrl+S=截图 | Ctrl+R=重置跟踪 | Esc=停止
-          </p>
         </footer>
       </div>
     </div>
