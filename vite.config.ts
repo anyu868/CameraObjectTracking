@@ -7,6 +7,16 @@ import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 export default defineConfig({
   build: {
     sourcemap: 'hidden',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-tensorflow': ['@tensorflow/tfjs', '@tensorflow-models/coco-ssd'],
+          'vendor-ui': ['lucide-react', 'zustand'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
   },
   plugins: [
     react({
@@ -27,4 +37,7 @@ export default defineConfig({
     }), 
     tsconfigPaths()
   ],
+  worker: {
+    format: 'es'
+  }
 })
